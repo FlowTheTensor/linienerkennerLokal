@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-cap = cv2.VideoCapture(0)   # Kamera 1 als Eingabe
+cap = cv2.VideoCapture(1)   # Kamera index als Eingabe
 
 while True:
     ret, frame = cap.read()  # einzelne Bilder lesen
@@ -9,41 +9,41 @@ while True:
         print("Fehler beim Lesen des Kamerabilds.")
         break
 
-    # Nur die untersten 150 Pixel
-    unten = frame[-150:]
+    height, width = frame.shape[:2]
 
-    # Für Anzeige und Zeichnen brauchen wir das Originalbild (unten_rgb)
-    unten_rgb = unten.copy()
 
-    unten_gray = cv2.cvtColor(unten, cv2.COLOR_BGR2GRAY) # in Graustufen wandeln
-    _, unten_bin = cv2.threshold(unten_gray,127,255,cv2.THRESH_BINARY) # In Binärbild wandeln
+    # Nur die untersten 150 Pixel und die 80 mittleren Spalten
+    unten = frame[height-150:, round(width/2)-40:round(width/2)+40, :]
+    unten_gray = cv2.cvtColor(unten, cv2.COLOR_BGR2GRAY)
+    _, unten_bin = cv2.threshold(unten_gray, 127, 255, cv2.THRESH_BINARY)
 
-    # Mittelpunkte in Zeile 50 und 99 (letzte Zeile ist 99, da 0-basiert)
-    row_idx1 = 50
-    row_idx2 = 99
-    col_idx1 = col_idx2 = None
-    if row_idx1 < unten_bin.shape[0]:
-        black_cols1 = np.where(unten_bin[row_idx1] == 0)[0]
-        if black_cols1.size > 0:
-            col_idx1 = int(np.mean(black_cols1))
-            cv2.circle(unten_rgb, (col_idx1, row_idx1), 5, 255, -1)
-    if row_idx2 < unten_bin.shape[0]:
-        black_cols2 = np.where(unten_bin[row_idx2] == 0)[0]
-        if black_cols2.size > 0:
-            col_idx2 = int(np.mean(black_cols2))
-            cv2.circle(unten_rgb, (col_idx2, row_idx2), 5, 255, -1)
+    # Erkennung nur in Zeile 50 (Index 49 im Ausschnitt)
+    row_idx = 49
+    col_idx = None
+    if row_idx < unten_bin.shape[0]:
+        black_cols = np.where(unten_bin[row_idx] == 0)[0]
+        if black_cols.size > 0:
+            col_idx = int(np.mean(black_cols))
+            cv2.circle(unten_bin, (col_idx, row_idx), 5, 255, -1)
 
-    # Linie zwischen den Mittelpunkten zeichnen, falls beide gefunden
-    if col_idx1 is not None and col_idx2 is not None:
-        cv2.line(unten_bin, (col_idx1, row_idx1), (col_idx2, row_idx2), 255, 2)
+    # Linie und Winkel von der Mitte des unteren Bildrandes (im Originalbild) aus bestimmen
+    if col_idx is not None:
+        # Berechne die Koordinaten im Originalbild
+        x_mitte_unten = width // 2
+        y_unten = height - 1
+        # Koordinate des erkannten Punktes im Originalbild
+        x_erkannt = (width // 2 - 40) + col_idx
+        y_erkannt = height - 150 + row_idx
+        # Linie zeichnen
+        cv2.line(frame, (x_mitte_unten, y_unten), (x_erkannt, y_erkannt), (0, 255, 0), 2)
         # Winkel berechnen (0° = senkrecht nach oben)
-        dx = col_idx2 - col_idx1
-        dy = row_idx1 - row_idx2  # y-Achse nach unten, daher row_idx1 - row_idx2
-        angle_rad = np.arctan2(dy, dx)
+        dx = x_erkannt - x_mitte_unten
+        dy = y_unten - y_erkannt
+        angle_rad = np.arctan2(dx, dy)
         angle_deg = np.degrees(angle_rad)
-        print(angle_deg+90)
+        print(f"Winkel: {angle_deg:.2f}°")
         
-    cv2.imshow('Webcam', unten_bin)
+    cv2.imshow('Webcam', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):  # q drücken, um Fenster zu schließen
         break
 

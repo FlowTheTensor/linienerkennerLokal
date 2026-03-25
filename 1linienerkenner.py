@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-cap = cv2.VideoCapture(0)   # Kamera 1 als Eingabe
+cap = cv2.VideoCapture(1)   # Kamera 0 als Eingabe
 
 while True:
     ret, frame = cap.read()  # einzelne Bilder lesen
@@ -9,11 +9,10 @@ while True:
         print("Fehler beim Lesen des Kamerabilds.")
         break
 
-    # Nur die untersten 150 Pixel
-    unten = frame[-150:]
+    height, width = frame.shape[:2]
 
-    # Für Anzeige und Zeichnen brauchen wir das Originalbild (unten_rgb)
-    unten_rgb = unten.copy()
+    # Nur die untersten 150 Pixel und die 80 mittleren Spalten
+    unten = frame[height-150:,round(width/2)-40:round(width/2)+40,:]
 
     unten_gray = cv2.cvtColor(unten, cv2.COLOR_BGR2GRAY) # in Graustufen wandeln
     _, unten_bin = cv2.threshold(unten_gray,127,255,cv2.THRESH_BINARY) # In Binärbild wandeln
@@ -24,3 +23,5 @@ while True:
 
 cap.release()
 cv2.destroyAllWindows()
+
+

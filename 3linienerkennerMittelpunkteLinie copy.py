@@ -26,13 +26,15 @@ while True:
         black_cols1 = np.where(unten_bin[row_idx1] == 0)[0]     #schwarzen Bereich finden
         if black_cols1.size > 0:    
             col_idx1 = int(np.mean(black_cols1))                # Mittelpunk bestimmen
-            cv2.circle(unten_bin, (col_idx1, row_idx1), 5, 255, -1) # weißen Kreis einzeichnen
+            cv2.circle(unten_bin, (col_idx1, row_idx1), 7, 0, -1) # weißen Kreis einzeichnen
+            cv2.circle(unten_bin, (col_idx1, row_idx1), 5, 255, -1) # schwarzen Kreis einzeichnen
 
     if row_idx2 < unten_bin.shape[0]:
         black_cols2 = np.where(unten_bin[row_idx2] == 0)[0]
         if black_cols2.size > 0:
             col_idx2 = int(np.mean(black_cols2))
-            cv2.circle(unten_bin, (col_idx2, row_idx2), 5, 255, -1)
+            cv2.circle(unten_bin, (col_idx2, row_idx2), 7, 0, -1) # weißen Kreis einzeichnen
+            cv2.circle(unten_bin, (col_idx2, row_idx2), 5, 255, -1) # schwarzen Kreis einzeichnen
             
     # Linie zwischen den Mittelpunkten zeichnen, falls beide gefunden
     if col_idx1 is not None and col_idx2 is not None:
